@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:my_app/utils/helperfunctions.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:wallet_connect/models/session/wc_session.dart';
+import 'package:wallet_connect/models/wc_peer_meta.dart';
+import 'package:wallet_connect/wc_client.dart';
 import 'package:walletconnect_dart/walletconnect_dart.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:slider_button/slider_button.dart';
+// import 'package:slider_button/slider_button.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -13,6 +17,18 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+
+  late WCClient _wcClient;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+
+    _wcClient = WCClient();
+
+    super.initState();
+  }
+
   var connector = WalletConnect(
       bridge: 'https://bridge.walletconnect.org',
       clientMeta: const PeerMeta(
@@ -30,7 +46,18 @@ class _LoginPageState extends State<LoginPage> {
       try {
         var session = await connector.createSession(onDisplayUri: (uri) async {
           _uri = uri;
-          await launchUrlString(uri, mode: LaunchMode.externalApplication);
+          await launchUrlString('$uri', mode: LaunchMode.externalApplication);
+
+          // debugPrint('URL $uri');
+          // if (uri.startsWith('wc:')) {
+          //   if (uri.contains('bridge') && uri.contains('key')) {
+          //     _qrScanHandler(uri);
+          //   }
+          //   // return NavigationActionPolicy.CANCEL;
+          // } else {
+          //   await launchUrlString('$uri', mode: LaunchMode.externalApplication);
+          // }
+
         });
         print(session.accounts[0]);
         print(session.chainId);
@@ -41,6 +68,21 @@ class _LoginPageState extends State<LoginPage> {
         print(exp);
       }
     }
+  }
+
+  _qrScanHandler(String value) {
+    final session = WCSession.from(value);
+    debugPrint('session $session');
+    final peerMeta = WCPeerMeta(
+      name: "Example Wallet",
+      // url: "https://pancakeswap.finance",
+      url: "https://pancakeswap.finance",
+      description: "Pancake Wallet",
+      // icons: [
+      //   "https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png"
+      // ],
+    );
+    _wcClient.connectNewSession(session: session, peerMeta: peerMeta);
   }
 
   signMessageWithMetamask(BuildContext context, String message) async {
@@ -194,13 +236,13 @@ class _LoginPageState extends State<LoginPage> {
                                         ],
                                       ),
                                       const SizedBox(height: 20),
-                                      SliderButton(
-                                        action: () async {
-                                          // TODO: Navigate to main page
-                                        },
-                                        label: const Text('Slide to login'),
-                                        icon: const Icon(Icons.check),
-                                      )
+                                      // SliderButton(
+                                      //   action: () async {
+                                      //     // TODO: Navigate to main page
+                                      //   },
+                                      //   label: const Text('Slide to login'),
+                                      //   icon: const Icon(Icons.check),
+                                      // )
                                     ],
                                   )
                       ],
@@ -213,4 +255,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+
+
+
 }
